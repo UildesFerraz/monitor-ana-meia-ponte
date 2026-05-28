@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ANA Monitor - Previsão de Nível</title>
+    <!-- Fonte Moderna: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="glass-header">
+        <div class="header-content">
+          <h1>🌊 ANA Monitor</h1>
+          <p>Estação 60635200 - Previsão e Histórico de Decaimento</p>
+        </div>
+      </header>
+
+      <main class="dashboard-container">
+        <!-- Loading State -->
+        <div id="loading" class="glass-card loading-card">
+          <div class="spinner"></div>
+          <p>Conectando ao Backend (FastAPI) e baixando dados da ANA...</p>
+        </div>
+
+        <!-- Conteúdo Principal (Oculto inicialmente) -->
+        <div id="dashboard-content" class="hidden">
+          
+          <!-- KPIs -->
+          <section class="kpi-grid">
+            <div class="glass-card kpi-card">
+              <h3>Última Atualização</h3>
+              <p id="kpi-date" class="kpi-value">--/--/----</p>
+            </div>
+            <div class="glass-card kpi-card">
+              <h3>Nível Atual</h3>
+              <p id="kpi-nivel" class="kpi-value">-- m</p>
+            </div>
+            <div class="glass-card kpi-card">
+              <h3>Vazão Atual</h3>
+              <p id="kpi-vazao" class="kpi-value">-- L/s</p>
+            </div>
+            <div class="glass-card kpi-card highlight" style="min-width: 250px;">
+              <h3>Datas dos Limites Críticos</h3>
+              <div id="kpi-estiagem-lista" style="margin-top: 15px; font-size: 0.95rem; text-align: left; width: 100%;">
+                <p>Calculando projeções...</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Toggle Nível / Vazão -->
+          <div class="controls glass-card">
+            <label for="metric-selector">Visualizar:</label>
+            <select id="metric-selector">
+              <option value="nivel">Nível do Rio (m)</option>
+              <option value="vazao">Vazão do Rio (L/s)</option>
+            </select>
+          </div>
+
+          <!-- Gráfico -->
+          <section class="glass-card chart-container">
+            <div id="plotly-chart"></div>
+          </section>
+        </div>
+      </main>
+    </div>
+    
+    <!-- Scripts -->
+    <script type="module" src="main.js"></script>
+  </body>
+</html>
