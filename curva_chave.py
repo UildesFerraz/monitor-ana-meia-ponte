@@ -66,8 +66,8 @@ def processar_dados_ana(df):
         df.set_index('Data', inplace=True)
         
     if col_nivel:
-        # Converter para float
-        df['Nivel_Real'] = pd.to_numeric(df[col_nivel], errors='coerce')
+        # Converter para float (e dividir por 100.0 para converter de cm para metros)
+        df['Nivel_Real'] = pd.to_numeric(df[col_nivel], errors='coerce') / 100.0
         # Calcular Vazão usando a curva chave
         df['Vazao_Calculada'] = calcular_vazao(df['Nivel_Real'])
         

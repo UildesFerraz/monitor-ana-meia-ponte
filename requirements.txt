@@ -1,6 +1,6 @@
-fastapi
-uvicorn
+streamlit
 pandas
+plotly
 requests
-prophet
 numpy
+prophet
