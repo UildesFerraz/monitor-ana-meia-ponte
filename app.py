@@ -26,7 +26,7 @@ st.markdown("""
         
         /* Streamlit layout optimization to fit screen */
         .block-container {
-            padding-top: 1.0rem !important;
+            padding-top: 3.5rem !important;
             padding-bottom: 1.0rem !important;
             padding-left: 2rem !important;
             padding-right: 2rem !important;
