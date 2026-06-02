@@ -104,18 +104,22 @@ NIVEL_ALERTA_CHEIA = 5.00     # Exemplo: Ajuste conforme necessário
 @st.cache_data(ttl=3600)
 def carregar_dados():
     """Função cacheada para não sobrecarregar a API."""
+    usuario, senha = None, None
     # Tenta carregar dos Secrets do Streamlit Cloud primeiro (mais seguro para a nuvem)
-    if "ANA_USER" in st.secrets and "ANA_PASS" in st.secrets:
-        usuario = st.secrets["ANA_USER"]
-        senha = st.secrets["ANA_PASS"]
-    else:
+    try:
+        if "ANA_USER" in st.secrets and "ANA_PASS" in st.secrets:
+            usuario = st.secrets["ANA_USER"]
+            senha = st.secrets["ANA_PASS"]
+    except Exception:
+        # Ignora erro se st.secrets não estiver configurado localmente
+        pass
+        
+    if not usuario or not senha:
         # Fallback local
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         cred_path = os.path.join(BASE_DIR, "API_ANA.txt")
         if os.path.exists(cred_path):
             usuario, senha = load_credentials(cred_path)
-        else:
-            usuario, senha = None, None
             
     if not usuario:
         st.error("Credenciais não encontradas. Configure st.secrets no Streamlit Cloud ou verifique API_ANA.txt localmente.")
@@ -131,6 +135,11 @@ def carregar_dados():
     
     if not df.empty:
         df = processar_dados_ana(df)
+        # Resample para médias diárias
+        # Isso reduz o tamanho do DataFrame de ~70.000 registros de 15 minutos para ~730 médias diárias.
+        # Evita OOM (Out Of Memory) no Streamlit Cloud e reduz o tempo de treinamento do Prophet de 50 segundos para menos de 1 segundo!
+        df = df[['Nivel_Real', 'Vazao_Calculada']].resample('D').mean()
+        df = df.dropna(subset=['Nivel_Real'])
     return df
 
 st.write("Baixando e processando dados históricos... Isso pode levar alguns segundos na primeira execução.")
@@ -149,7 +158,7 @@ else:
     col1, col2, col3 = st.columns(3)
     nivel_atual = df_dados['Nivel_Real'].iloc[-1] if 'Nivel_Real' in df_dados else 0
     vazao_atual = df_dados['Vazao_Calculada'].iloc[-1] if 'Vazao_Calculada' in df_dados else 0
-    data_atualizacao = df_dados.index[-1].strftime('%d/%m/%Y %H:%M') if not df_dados.empty else "N/A"
+    data_atualizacao = df_dados.index[-1].strftime('%d/%m/%Y') if not df_dados.empty else "N/A"
     
     col1.markdown(f"""
         <div class="metric-card">
