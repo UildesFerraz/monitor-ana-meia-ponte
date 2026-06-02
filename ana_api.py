@@ -94,7 +94,7 @@ def fetch_historical_data(token, codigo_estacao, data_fim_busca, num_meses=12):
             
         # Retrocede 30 dias
         data_atual = data_atual - timedelta(days=30)
-        time.sleep(1) # Respeitar limites da API
+        time.sleep(0.5) # Respeitar limites da API (reduzido para acelerar o carregamento)
         
     if not all_items:
         return pd.DataFrame()

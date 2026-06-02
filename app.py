@@ -130,8 +130,8 @@ def carregar_dados():
         st.error("Falha ao obter o token da API.")
         return pd.DataFrame()
         
-    # Busca 24 meses (2 anos) para ter histórico suficiente
-    df = fetch_historical_data(token, ESTACAO_CODIGO, datetime.now(), num_meses=24)
+    # Busca 12 meses (1 ano) para ter histórico suficiente e evitar timeout
+    df = fetch_historical_data(token, ESTACAO_CODIGO, datetime.now(), num_meses=12)
     
     if not df.empty:
         df = processar_dados_ana(df)
@@ -141,6 +141,14 @@ def carregar_dados():
         df = df[['Nivel_Real', 'Vazao_Calculada']].resample('D').mean()
         df = df.dropna(subset=['Nivel_Real'])
     return df
+
+@st.cache_data(ttl=3600)
+def cached_prever_com_prophet(df, dias, col):
+    return prever_com_prophet(df, dias_futuros=dias, col_nivel=col)
+
+@st.cache_data(ttl=3600)
+def cached_extrapolar_decaimento_fisico(df, nivel, dias):
+    return extrapolar_decaimento_fisico(df, nivel, dias_futuros=dias)
 
 st.write("Baixando e processando dados históricos... Isso pode levar alguns segundos na primeira execução.")
 with st.spinner('Processando...'):
@@ -201,7 +209,7 @@ else:
     
     # 2. Extrapolação Baseada em Decaimento Físico (Recessão)
     if 'Nivel_Real' in df_dados.columns:
-        projecao_niveis, taxa_media = extrapolar_decaimento_fisico(df_dados, nivel_atual, dias_futuros=dias_previsao)
+        projecao_niveis, taxa_media = cached_extrapolar_decaimento_fisico(df_dados, nivel_atual, dias_previsao)
         datas_futuras = [df_dados.index[-1] + timedelta(days=i) for i in range(1, dias_previsao + 1)]
         
         projecao_y = projecao_niveis if metrica == "Nível (m)" else calcular_vazao(projecao_niveis)
@@ -231,8 +239,8 @@ else:
     # 4. (Opcional) Modelo Prophet
     try:
         from prophet import Prophet
-        # Apenas mostrar Prophet se o módulo estiver disponível
-        forecast = prever_com_prophet(df_dados, dias_futuros=dias_previsao, col_nivel=coluna_y)
+        # Apenas mostrar Prophet se o módulo estiver disponível (usa wrapper cacheado)
+        forecast = cached_prever_com_prophet(df_dados, dias_previsao, coluna_y)
         if forecast is not None:
             fig.add_trace(go.Scatter(
                 x=forecast['ds'], 
