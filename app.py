@@ -11,111 +11,180 @@ from model_forecasting import extrapolar_decaimento_fisico, prever_com_prophet
 
 st.set_page_config(page_title="Monitoramento - ANA", layout="wide")
 
-# Custom CSS for Premium Design
+# Custom CSS for CIMEHGO Dark Forest Green Theme
 st.markdown("""
     <style>
         /* Import Outfit font */
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
         
-        /* Apply fonts globally */
+        /* Apply fonts and background globally */
         html, body, [class*="css"], .stApp {
             font-family: 'Outfit', sans-serif !important;
+            background-color: #0a140d !important;
+            color: #e2ede4 !important;
         }
         
         /* Main Title styling */
         .main-title {
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             font-weight: 800;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #00c6ff 100%);
+            background: linear-gradient(135deg, #4ade80 0%, #10b981 50%, #059669 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 2rem;
             text-align: center;
         }
         
+        /* Custom sidebar styling */
+        section[data-testid="stSidebar"] {
+            background-color: #0f1c12 !important;
+            border-right: 1px solid #1c3522 !important;
+        }
+        
+        section[data-testid="stSidebar"] p, 
+        section[data-testid="stSidebar"] label, 
+        section[data-testid="stSidebar"] span {
+            color: #e2ede4 !important;
+        }
+        
         /* Glassmorphic Metric Cards */
         .metric-card {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
+            background: #112517 !important;
+            border: 1px solid #1c3522 !important;
+            border-radius: 12px;
             padding: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.06);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             text-align: center;
             margin-bottom: 1.5rem;
         }
         
         .metric-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.12);
-            border-color: rgba(30, 60, 114, 0.2);
+            transform: translateY(-3px);
+            border-color: #4ade80 !important;
+            box-shadow: 0 6px 25px rgba(74, 222, 128, 0.15);
         }
         
         .metric-label {
             font-size: 0.85rem;
             text-transform: uppercase;
             letter-spacing: 1.5px;
-            color: #64748b;
+            color: #8fa492 !important;
             font-weight: 600;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
         }
         
         .metric-value {
-            font-size: 2rem;
+            font-size: 2.2rem;
             font-weight: 800;
-            color: #1e293b;
+            color: #ffffff !important;
         }
         
         .metric-unit {
             font-size: 1.1rem;
             font-weight: 500;
-            color: #64748b;
+            color: #8fa492 !important;
         }
         
         .metric-footer {
-            font-size: 0.75rem;
-            color: #94a3b8;
-            margin-top: 6px;
+            font-size: 0.8rem;
+            color: #55725d !important;
+            margin-top: 8px;
         }
         
-        /* Custom styling for Sidebar */
-        section[data-testid="stSidebar"] {
-            background-color: #f8fafc;
-            border-right: 1px solid #e2e8f0;
+        /* Critical Alert Cards */
+        .alerta-card {
+            background: #112517 !important;
+            border: 1px solid #1c3522 !important;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
         }
         
-        /* Custom headers */
-        h2, h3 {
-            font-family: 'Outfit', sans-serif !important;
+        .alerta-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+        }
+        
+        .alerta-titulo {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+        
+        .alerta-status {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #ffffff !important;
+            margin-bottom: 4px;
+        }
+        
+        .alerta-detalhe {
+            font-size: 0.78rem;
+            color: #8fa492 !important;
+        }
+        
+        /* Native Streamlit Elements */
+        div[data-testid="stExpander"], .stDataFrame {
+            background-color: #112517 !important;
+            border: 1px solid #1c3522 !important;
+            border-radius: 12px !important;
+            color: #e2ede4 !important;
+        }
+        
+        div[data-testid="stExpander"] summary {
+            color: #ffffff !important;
             font-weight: 600 !important;
-            color: #1e293b !important;
+        }
+        
+        /* Table styles */
+        table {
+            color: #e2ede4 !important;
+        }
+        th {
+            background-color: #0c150e !important;
+            color: #ffffff !important;
+        }
+        td {
+            background-color: #112517 !important;
+            color: #e2ede4 !important;
         }
     </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="main-title">🌧️ Previsão de Nível e Vazão - Estação ANA</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-title">🌧️ Previsão de Nível e Vazão - Estação ANA (CIMEHGO)</div>', unsafe_allow_html=True)
 
 # Constantes do Projeto
 ESTACAO_CODIGO = "60635200"
-NIVEL_ATENCAO_ESTIAGEM = 2.80 # Exemplo: Ajuste conforme necessário
-NIVEL_ALERTA_CHEIA = 5.00     # Exemplo: Ajuste conforme necessário
+NIVEL_ATENCAO_ESTIAGEM = 2.80 
+NIVEL_ALERTA_CHEIA = 5.00     
+
+# Limiares de Alerta Oficial (Bacia do Rio Meia Ponte - SEMAD / CIMEHGO)
+ALERTAS_VAZAO = [
+    {"nome": "Atenção (12m³/s)", "valor": 12.0, "cor": "#fde047"},
+    {"nome": "Alerta (9m³/s)", "valor": 9.0, "cor": "#fbbf24"},
+    {"nome": "Crítico 1 (5.5m³/s)", "valor": 5.5, "cor": "#f97316"},
+    {"nome": "Crítico 2 (4.0m³/s)", "valor": 4.0, "cor": "#ef4444"},
+    {"nome": "Crítico 3 (3.0m³/s)", "valor": 3.0, "cor": "#b91c1c"},
+    {"nome": "Crítico 4 (2.0m³/s)", "valor": 2.0, "cor": "#7f1d1d"}
+]
 
 @st.cache_data(ttl=3600)
 def carregar_dados():
     """Função cacheada para não sobrecarregar a API."""
     usuario, senha = None, None
-    # Tenta carregar dos Secrets do Streamlit Cloud primeiro (mais seguro para a nuvem)
     try:
         if "ANA_USER" in st.secrets and "ANA_PASS" in st.secrets:
             usuario = st.secrets["ANA_USER"]
             senha = st.secrets["ANA_PASS"]
     except Exception:
-        # Ignora erro se st.secrets não estiver configurado localmente
         pass
         
     if not usuario or not senha:
-        # Fallback local
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         cred_path = os.path.join(BASE_DIR, "API_ANA.txt")
         if os.path.exists(cred_path):
@@ -130,14 +199,11 @@ def carregar_dados():
         st.error("Falha ao obter o token da API.")
         return pd.DataFrame()
         
-    # Busca 12 meses (1 ano) para ter histórico suficiente e evitar timeout
-    df = fetch_historical_data(token, ESTACAO_CODIGO, datetime.now(), num_meses=12)
+    # Busca 60 meses (5 anos) em paralelo para ter o histórico completo e a mesma acurácia do projeto local
+    df = fetch_historical_data(token, ESTACAO_CODIGO, datetime.now(), num_meses=60)
     
     if not df.empty:
         df = processar_dados_ana(df)
-        # Resample para médias diárias
-        # Isso reduz o tamanho do DataFrame de ~70.000 registros de 15 minutos para ~730 médias diárias.
-        # Evita OOM (Out Of Memory) no Streamlit Cloud e reduz o tempo de treinamento do Prophet de 50 segundos para menos de 1 segundo!
         df = df[['Nivel_Real', 'Vazao_Calculada']].resample('D').mean()
         df = df.dropna(subset=['Nivel_Real'])
     return df
@@ -162,7 +228,7 @@ else:
     dias_previsao = st.sidebar.slider("Dias de Previsão Futura", min_value=7, max_value=60, value=30)
     metrica = st.sidebar.selectbox("Métrica para Visualizar", ["Nível (m)", "Vazão (m³/s)"])
     
-    # KPIs Rápidos com design premium
+    # KPIs Rápidos com design premium (Estilo CIMEHGO)
     col1, col2, col3 = st.columns(3)
     nivel_atual = df_dados['Nivel_Real'].iloc[-1] if 'Nivel_Real' in df_dados else 0
     vazao_atual = df_dados['Vazao_Calculada'].iloc[-1] if 'Vazao_Calculada' in df_dados else 0
@@ -172,7 +238,7 @@ else:
         <div class="metric-card">
             <div class="metric-label">Última Atualização</div>
             <div class="metric-value">{data_atualizacao}</div>
-            <div class="metric-footer">Estação ANA {ESTACAO_CODIGO}</div>
+            <div class="metric-footer">Estação Montante Captação {ESTACAO_CODIGO}</div>
         </div>
     """, unsafe_allow_html=True)
     
@@ -187,117 +253,223 @@ else:
     col3.markdown(f"""
         <div class="metric-card">
             <div class="metric-label">Vazão Atual</div>
-            <div class="metric-value">{vazao_atual:.2f} <span class="metric-unit">m³/s</span></div>
-            <div class="metric-footer">Calculado via curva-chave</div>
+            <div class="metric-value">{(vazao_atual * 1000):,.0f} <span class="metric-unit">L/s</span></div>
+            <div class="metric-footer">Equivalente a {vazao_atual:.2f} m³/s</div>
         </div>
     """, unsafe_allow_html=True)
 
+    # Projeções Físicas & Prophet
+    projecao_niveis, taxa_media = cached_extrapolar_decaimento_fisico(df_dados, nivel_atual, dias_previsao)
+    projecao_vazao_fisica = calcular_vazao(projecao_niveis)
+    
+    projecao_vazao_prophet = None
+    try:
+        from prophet import Prophet
+        # Executa previsão da vazão com Prophet
+        forecast = cached_prever_com_prophet(df_dados, dias_previsao, 'Vazao_Calculada')
+        if forecast is not None:
+            forecast_futuro = forecast[forecast['ds'] > df_dados.index[-1]].head(dias_previsao)
+            projecao_vazao_prophet = forecast_futuro['yhat'].values
+    except Exception:
+        pass
+
+    # Calcular dias de entrada nos níveis críticos (Vazão)
+    kpis_criticos = []
+    for alerta in ALERTAS_VAZAO:
+        valor_limite = alerta["valor"]
+        cor_alerta = alerta["cor"]
+        nome_alerta = alerta["nome"]
+        
+        if vazao_atual <= valor_limite:
+            status_str = "Atingido"
+            detalhe_str = f"Vazão atual abaixo de {valor_limite:.1f} m³/s"
+            cor_texto = cor_alerta
+        else:
+            # Encontrar na extrapolação física
+            data_fisica = None
+            dias_fisica = None
+            for idx, q_val in enumerate(projecao_vazao_fisica):
+                if q_val <= valor_limite:
+                    dias_fisica = idx + 1
+                    data_fisica = (df_dados.index[-1] + timedelta(days=dias_fisica)).strftime('%d/%m')
+                    break
+            
+            # Encontrar no Prophet
+            data_prophet = None
+            dias_prophet = None
+            if projecao_vazao_prophet is not None:
+                for idx, q_val in enumerate(projecao_vazao_prophet):
+                    if q_val <= valor_limite:
+                        dias_prophet = idx + 1
+                        data_prophet = (df_dados.index[-1] + timedelta(days=dias_prophet)).strftime('%d/%m')
+                        break
+            
+            parts = []
+            if data_fisica:
+                parts.append(f"Física: {data_fisica} ({dias_fisica}d)")
+            else:
+                parts.append(f"Física: >{dias_previsao}d")
+                
+            if data_prophet:
+                parts.append(f"Prophet: {data_prophet} ({dias_prophet}d)")
+            else:
+                parts.append(f"Prophet: >{dias_previsao}d")
+                
+            status_str = " | ".join(parts)
+            detalhe_str = f"Previsão de entrada para {valor_limite:.1f} m³/s"
+            cor_texto = "#ffffff"
+            
+        kpis_criticos.append({
+            "nome": nome_alerta,
+            "status": status_str,
+            "detalhe": detalhe_str,
+            "cor": cor_alerta,
+            "cor_texto": cor_texto
+        })
+
+    # Renderizar painel de criticidade (Estilo Portal CIMEHGO)
+    st.subheader("⚠️ Projeção de Níveis Críticos (Vazão)")
+    cols = st.columns(3)
+    for idx, kpi in enumerate(kpis_criticos):
+        col = cols[idx % 3]
+        col.markdown(f"""
+            <div class="alerta-card" style="border-left: 5px solid {kpi['cor']};">
+                <div class="alerta-titulo" style="color: {kpi['cor']};">{kpi['nome']}</div>
+                <div class="alerta-status" style="color: {kpi['cor_texto']};">{kpi['status']}</div>
+                <div class="alerta-detalhe">{kpi['detalhe']}</div>
+            </div>
+        """, unsafe_allow_html=True)
+
     st.subheader(f"Histórico e Projeções - {metrica}")
     
-    # 1. Gráfico Histórico
     fig = go.Figure()
-    
     coluna_y = 'Nivel_Real' if metrica == "Nível (m)" else 'Vazao_Calculada'
     
+    # 1. Gráfico Histórico
+    y_hist = df_dados[coluna_y]
+    if metrica == "Vazão (m³/s)":
+        y_hist = y_hist * 1000
+        
     fig.add_trace(go.Scatter(
         x=df_dados.index, 
-        y=df_dados[coluna_y],
+        y=y_hist,
         mode='lines',
         name='Histórico Observado',
-        line=dict(color='#1e3c72', width=3, shape='spline')
+        line=dict(color='#38bdf8', width=3, shape='spline')
     ))
     
     # 2. Extrapolação Baseada em Decaimento Físico (Recessão)
     if 'Nivel_Real' in df_dados.columns:
-        projecao_niveis, taxa_media = cached_extrapolar_decaimento_fisico(df_dados, nivel_atual, dias_previsao)
         datas_futuras = [df_dados.index[-1] + timedelta(days=i) for i in range(1, dias_previsao + 1)]
-        
-        projecao_y = projecao_niveis if metrica == "Nível (m)" else calcular_vazao(projecao_niveis)
-        
+        projecao_y = projecao_niveis if metrica == "Nível (m)" else projecao_vazao_fisica
+        if metrica == "Vazão (m³/s)":
+            projecao_y = projecao_y * 1000
+            
         fig.add_trace(go.Scatter(
             x=datas_futuras, 
             y=projecao_y,
             mode='lines',
-            name='Extrapolação Física (Decaimento Exponencial)',
-            line=dict(color='#ef4444', width=2.5, dash='dash')
+            name='Extrapolação Física (Recessão)',
+            line=dict(color='#f43f5e', width=2.5, dash='dash')
         ))
         
         # 3. Limiares de Alerta (Linhas horizontais)
         if metrica == "Nível (m)":
-            fig.add_hline(y=NIVEL_ATENCAO_ESTIAGEM, line_dash="dot", annotation_text="Atenção Estiagem", line_color="orange")
-            fig.add_hline(y=NIVEL_ALERTA_CHEIA, line_dash="dot", annotation_text="Alerta Cheia", line_color="purple")
-            
-            # Previsão: quando chega na estiagem?
-            if nivel_atual > NIVEL_ATENCAO_ESTIAGEM:
-                dias_para_estiagem = (nivel_atual - NIVEL_ATENCAO_ESTIAGEM) / taxa_media if taxa_media > 0 else float('inf')
-                st.info(f"**Projeção de Estiagem:** Mantida a taxa de decaimento histórico ({taxa_media:.3f} m/dia), o nível de alerta será atingido em aprox. **{int(dias_para_estiagem)} dias**.")
+            fig.add_hline(y=NIVEL_ATENCAO_ESTIAGEM, line_dash="dot", annotation_text="Atenção Estiagem (2.80m)", line_color="#fbbf24")
+            fig.add_hline(y=NIVEL_ALERTA_CHEIA, line_dash="dot", annotation_text="Alerta Cheia (5.00m)", line_color="#818cf8")
         else:
-            # Para Vazão
-            vazao_estiagem = calcular_vazao(NIVEL_ATENCAO_ESTIAGEM)
-            fig.add_hline(y=vazao_estiagem, line_dash="dot", annotation_text="Vazão Crítica", line_color="orange")
+            # Para Vazão (Multiplicado por 1000 para L/s)
+            for alerta in ALERTAS_VAZAO:
+                fig.add_hline(
+                    y=alerta["valor"] * 1000,
+                    line_dash="dot",
+                    line_color=alerta["cor"],
+                    annotation_text=alerta["nome"].replace("m³/s", " m³/s"),
+                    annotation_position="bottom right"
+                )
 
     # 4. (Opcional) Modelo Prophet
     try:
-        from prophet import Prophet
-        # Apenas mostrar Prophet se o módulo estiver disponível (usa wrapper cacheado)
         forecast = cached_prever_com_prophet(df_dados, dias_previsao, coluna_y)
         if forecast is not None:
+            forecast_futuro = forecast[forecast['ds'] > df_dados.index[-1]].head(dias_previsao)
+            
+            y_prophet = forecast_futuro['yhat'].values
+            y_prophet_upper = forecast_futuro['yhat_upper'].values
+            y_prophet_lower = forecast_futuro['yhat_lower'].values
+            
+            if metrica == "Vazão (m³/s)":
+                y_prophet = y_prophet * 1000
+                y_prophet_upper = y_prophet_upper * 1000
+                y_prophet_lower = y_prophet_lower * 1000
+                
             fig.add_trace(go.Scatter(
-                x=forecast['ds'], 
-                y=forecast['yhat'],
+                x=forecast_futuro['ds'], 
+                y=y_prophet,
                 mode='lines',
                 name='Previsão Prophet',
                 line=dict(color='#10b981', width=2.5, dash='dot')
             ))
             fig.add_trace(go.Scatter(
-                x=forecast['ds'], 
-                y=forecast['yhat_upper'],
+                x=forecast_futuro['ds'], 
+                y=y_prophet_upper,
                 mode='lines',
                 line=dict(width=0),
                 showlegend=False
             ))
             fig.add_trace(go.Scatter(
-                x=forecast['ds'], 
-                y=forecast['yhat_lower'],
+                x=forecast_futuro['ds'], 
+                y=y_prophet_lower,
                 mode='lines',
                 fill='tonexty',
-                fillcolor='rgba(16, 185, 129, 0.15)',
+                fillcolor='rgba(16, 185, 129, 0.12)',
                 line=dict(width=0),
                 name='Intervalo Confiança Prophet'
             ))
-    except ImportError:
+    except Exception:
         pass
         
     fig.update_layout(
         height=600, 
-        template="plotly_white", 
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(family="Outfit, sans-serif", size=12, color="#e2ede4"),
         title={
-            'text': f"Evolução de {metrica}",
+            'text': f"Evolução de {metrica.replace('m³/s', 'L/s') if metrica == 'Vazão (m³/s)' else metrica}",
             'y': 0.95,
             'x': 0.5,
             'xanchor': 'center',
             'yanchor': 'top',
-            'font': {'size': 20, 'family': 'Outfit', 'color': '#1e293b'}
+            'font': {'size': 20, 'family': 'Outfit', 'color': '#ffffff'}
         },
         legend=dict(
             orientation="h",
             yanchor="bottom",
             y=1.02,
             xanchor="center",
-            x=0.5
+            x=0.5,
+            font=dict(color="#e2ede4")
         ),
         margin=dict(l=40, r=40, t=80, b=40),
         xaxis=dict(
-            gridcolor='rgba(226, 232, 240, 0.6)',
-            linecolor='#cbd5e1'
+            gridcolor='rgba(28, 53, 34, 0.4)',
+            linecolor='#1c3522',
+            tickfont=dict(color="#8fa492")
         ),
         yaxis=dict(
-            gridcolor='rgba(226, 232, 240, 0.6)',
-            linecolor='#cbd5e1'
+            title="Nível (m)" if metrica == "Nível (m)" else "Vazão (L/s)",
+            gridcolor='rgba(28, 53, 34, 0.4)',
+            linecolor='#1c3522',
+            tickfont=dict(color="#8fa492")
         )
     )
     st.plotly_chart(fig, use_container_width=True)
 
     # Exibir tabela bruta
     with st.expander("Ver Dados em Tabela"):
-        st.dataframe(df_dados.tail(100))
+        df_tabela = df_dados.copy()
+        if metrica == "Vazão (m³/s)":
+            df_tabela['Vazao_L_s'] = df_tabela['Vazao_Calculada'] * 1000
+            st.dataframe(df_tabela[['Nivel_Real', 'Vazao_Calculada', 'Vazao_L_s']].tail(100))
+        else:
+            st.dataframe(df_tabela[['Nivel_Real', 'Vazao_Calculada']].tail(100))

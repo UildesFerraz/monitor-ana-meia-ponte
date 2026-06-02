@@ -3,6 +3,7 @@ import requests
 import pandas as pd
 from datetime import datetime, timedelta
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 API_BASE_URL = "https://www.ana.gov.br/hidrowebservice/EstacoesTelemetricas"
 
@@ -52,22 +53,19 @@ def get_api_token(usuario, senha):
 
 def fetch_historical_data(token, codigo_estacao, data_fim_busca, num_meses=12):
     """
-    Busca dados na API fazendo requests em blocos (iterando para trás).
-    Como a API permite Range Intervalo 'DIAS_30', vamos fazer Múltiplas requisições.
+    Busca dados na API fazendo requests em paralelo (ThreadPoolExecutor) para
+    evitar gargalos e timeouts no Streamlit Cloud.
     """
-    all_items = []
-    data_atual = data_fim_busca
-
     headers = {
         'Authorization': f'Bearer {token}',
         'Expect': '',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
     }
     
-    print(f"\nColetando histórico da Estação: {codigo_estacao}")
-    
-    # Vamos buscar os últimos 'num_meses' meses, fazendo requests a cada 30 dias
-    for _ in range(num_meses):
+    # Gerar os parâmetros para cada bloco de 30 dias
+    request_params = []
+    data_atual = data_fim_busca
+    for i in range(num_meses):
         data_str = data_atual.strftime('%Y-%m-%d')
         params = {
             'Código da Estação': str(codigo_estacao),
@@ -75,33 +73,44 @@ def fetch_historical_data(token, codigo_estacao, data_fim_busca, num_meses=12):
             'Data de Busca (yyyy-MM-dd)': data_str,
             'Range Intervalo de busca': 'DIAS_30'
         }
+        request_params.append(params)
+        data_atual = data_atual - timedelta(days=30)
         
-        print(f"  -> Buscando 30 dias até {data_str}...")
-        
+    all_items = []
+    
+    def fetch_single_month(params):
+        url = f"{API_BASE_URL}/HidroinfoanaSerieTelemetricaDetalhada/v1"
         try:
-            response = requests.get(f"{API_BASE_URL}/HidroinfoanaSerieTelemetricaDetalhada/v1", params=params, headers=headers)
+            response = requests.get(url, params=params, headers=headers, timeout=15)
             response.raise_for_status()
             data = response.json()
-            
             if data.get('items'):
-                all_items.extend(data['items'])
-            else:
-                print("     Aviso: Sem dados para este período.")
-                
+                return data['items']
         except Exception as e:
-            print(f"     Erro ao buscar dados: {e}")
-            break
-            
-        # Retrocede 30 dias
-        data_atual = data_atual - timedelta(days=30)
-        time.sleep(0.5) # Respeitar limites da API (reduzido para acelerar o carregamento)
-        
+            print(f"     Erro ao buscar dados para {params['Data de Busca (yyyy-MM-dd)']}: {e}")
+        return []
+
+    print(f"\nColetando histórico da Estação: {codigo_estacao} ({num_meses} meses) em paralelo...")
+    
+    max_workers = min(10, num_meses)
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {executor.submit(fetch_single_month, p): p['Data de Busca (yyyy-MM-dd)'] for p in request_params}
+        for future in as_completed(futures):
+            date_str = futures[future]
+            try:
+                items = future.result()
+                if items:
+                    all_items.extend(items)
+                    print(f"  -> Sucesso: {date_str} ({len(items)} registros)")
+                else:
+                    print(f"  -> Sem dados: {date_str}")
+            except Exception as e:
+                print(f"  -> Erro na thread para {date_str}: {e}")
+                
     if not all_items:
         return pd.DataFrame()
         
     df = pd.DataFrame(all_items)
-    
-    # Processar o DataFrame para um formato mais limpo
     return process_raw_data(df)
 
 def process_raw_data(df):
